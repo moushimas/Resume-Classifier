@@ -34,18 +34,14 @@ st.set_page_config(
 # -----------------------------
 @st.cache_resource
 def load_model():
- try:
     model = joblib.load("svm_model.pkl")
     vectorizer = joblib.load("tfidf_vectorizer.pkl")
-except Exception as e:
-    st.error(f"Model loading error: {e}")
-    st.stop()
     return model, vectorizer
 
 try:
     model, vectorizer = load_model()
 except Exception as e:
-    st.error(f"Unable to load model: {e}")
+    st.error(f"Model loading error: {e}")
     st.stop()
 
 # -----------------------------
