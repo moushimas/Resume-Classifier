@@ -498,25 +498,50 @@ if uploaded_file is not None:
 
 
         # ====================================================
-        # 16. TF-IDF TRANSFORMATION
-        # ====================================================
+       # ====================================================
+# 16. TF-IDF TRANSFORMATION
+# ====================================================
 
-        resume_vector = vectorizer.transform(
-            [clean_resume]
-        )
+resume_vector = vectorizer.transform(
+    [clean_resume]
+)
 
 
-        # ====================================================
-        # 17. PREDICTION
-        # ====================================================
+# ====================================================
+# 17. PREDICTION WITH UNKNOWN DETECTION
+# ====================================================
 
-        with st.spinner(
-            "🤖 AI is analyzing your resume..."
-        ):
+with st.spinner(
+    "🤖 AI is analyzing your resume..."
+):
 
-            prediction = model.predict(
-                resume_vector
-            )[0]
+    # Get decision scores from Linear SVM
+    scores = model.decision_function(
+        resume_vector
+    )
+
+    # Find class with highest score
+    best_index = np.argmax(
+        scores[0]
+    )
+
+    # Predicted category
+    prediction = model.classes_[
+        best_index
+    ]
+
+    # Highest decision score
+    best_score = scores[0][
+        best_index
+    ]
+
+    # Starting threshold
+    threshold = 0.30
+
+    # Check whether resume matches trained categories
+    if best_score < threshold:
+
+        prediction = "Other / Unknown Resume"
 
 
         # ====================================================
