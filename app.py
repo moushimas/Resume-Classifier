@@ -9,6 +9,7 @@ import joblib
 import nltk
 import re
 import string
+import numpy as np
 
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
@@ -41,7 +42,7 @@ stemmer = PorterStemmer()
 
 
 # ============================================================
-# 3. LOAD MODEL AND TF-IDF VECTORIZER
+# 3. LOAD MODEL AND VECTORIZER
 # ============================================================
 
 @st.cache_resource
@@ -76,7 +77,7 @@ except Exception as e:
 
 def preprocess_text(text):
 
-    # Convert to lowercase
+    # Convert text to lowercase
     text = str(text).lower()
 
     # Remove URLs
@@ -93,7 +94,7 @@ def preprocess_text(text):
         text
     )
 
-    # Remove long numbers
+    # Remove long numbers such as phone numbers
     text = re.sub(
         r"\d{10,}",
         " ",
@@ -108,10 +109,10 @@ def preprocess_text(text):
         )
     )
 
-    # Split text into words
+    # Split text
     words = text.split()
 
-    # Remove stopwords and perform stemming
+    # Remove stopwords and apply stemming
     words = [
         stemmer.stem(word)
         for word in words
@@ -165,14 +166,14 @@ with st.sidebar:
 
     st.divider()
 
-    st.subheader("📌 About")
+    st.subheader("📌 About Project")
 
     st.write(
         """
-        This application automatically analyzes
-        resumes and predicts their professional
-        category using Machine Learning and
-        Natural Language Processing.
+        This application analyzes resume content
+        and predicts its professional category
+        using Machine Learning and Natural
+        Language Processing.
         """
     )
 
@@ -184,7 +185,7 @@ with st.sidebar:
 
     st.write("**Feature Extraction:** TF-IDF")
 
-    st.write("**Number of Categories:** 4")
+    st.write("**Categories:** 4 + Unknown")
 
     st.divider()
 
@@ -215,9 +216,9 @@ st.subheader(
 
 st.write(
     """
-    Upload a resume and the system will automatically
-    analyze its skills, technologies and professional
-    content to predict the most suitable resume category.
+    Upload a resume and the system will analyze
+    its skills, technologies and professional
+    information to predict the most suitable category.
     """
 )
 
@@ -225,12 +226,15 @@ st.divider()
 
 
 # ============================================================
-# 9. MODEL INFORMATION
+# 9. SYSTEM OVERVIEW
 # ============================================================
 
-st.header("📊 System Overview")
+st.header(
+    "📊 System Overview"
+)
 
 overview1, overview2, overview3 = st.columns(3)
+
 
 with overview1:
 
@@ -239,17 +243,19 @@ with overview1:
         value="Linear SVM"
     )
 
+
 with overview2:
 
     st.metric(
-        label="Resume Categories",
+        label="Trained Categories",
         value="4"
     )
+
 
 with overview3:
 
     st.metric(
-        label="Text Technique",
+        label="Text Features",
         value="TF-IDF"
     )
 
@@ -261,20 +267,30 @@ st.divider()
 # 10. SUPPORTED CATEGORIES
 # ============================================================
 
-st.header("🎯 Supported Resume Categories")
+st.header(
+    "🎯 Supported Resume Categories"
+)
 
 st.write(
-    "The model is trained to classify resumes into the following four categories."
+    """
+    The machine learning model is trained to identify
+    the following resume categories.
+    """
 )
+
 
 category1, category2, category3, category4 = st.columns(4)
 
 
 with category1:
 
-    st.subheader("⚛️ React")
+    st.subheader(
+        "⚛️ React"
+    )
 
-    st.write("React Developer")
+    st.write(
+        "**React Developer**"
+    )
 
     st.caption(
         "Frontend and web application development"
@@ -283,20 +299,28 @@ with category1:
 
 with category2:
 
-    st.subheader("🗄️ SQL")
+    st.subheader(
+        "🗄️ SQL"
+    )
 
-    st.write("SQL Developer")
+    st.write(
+        "**SQL Developer**"
+    )
 
     st.caption(
-        "Database development and SQL technologies"
+        "SQL and database development"
     )
 
 
 with category3:
 
-    st.subheader("🏢 PeopleSoft")
+    st.subheader(
+        "🏢 PeopleSoft"
+    )
 
-    st.write("PeopleSoft Resume")
+    st.write(
+        "**PeopleSoft Resume**"
+    )
 
     st.caption(
         "PeopleSoft and enterprise applications"
@@ -305,12 +329,16 @@ with category3:
 
 with category4:
 
-    st.subheader("💼 Workday")
+    st.subheader(
+        "💼 Workday"
+    )
 
-    st.write("Workday")
+    st.write(
+        "**Workday**"
+    )
 
     st.caption(
-        "Workday and enterprise HR technologies"
+        "Workday and HR enterprise technologies"
     )
 
 
@@ -318,17 +346,15 @@ st.divider()
 
 
 # ============================================================
-# 11. RESUME UPLOAD SECTION
+# 11. UPLOAD RESUME
 # ============================================================
 
-st.header("📤 Upload Resume")
+st.header(
+    "📤 Upload Resume"
+)
 
 st.write(
-    """
-    Select a resume from your computer.
-
-    Supported formats: **PDF and DOCX**
-    """
+    "Upload your resume in PDF or DOCX format."
 )
 
 
@@ -350,9 +376,9 @@ if uploaded_file is not None:
 
     try:
 
-        # ----------------------------------------------------
-        # Extract resume text
-        # ----------------------------------------------------
+        # ====================================================
+        # 13. EXTRACT RESUME TEXT
+        # ====================================================
 
         if uploaded_file.name.lower().endswith(".pdf"):
 
@@ -385,30 +411,32 @@ if uploaded_file is not None:
             st.stop()
 
 
-        # ----------------------------------------------------
-        # Check extracted text
-        # ----------------------------------------------------
+        # ====================================================
+        # 14. CHECK EXTRACTED TEXT
+        # ====================================================
 
         if not resume_text.strip():
 
             st.error(
-                "No readable text was found in the uploaded resume."
+                "No readable text was found in the resume."
             )
 
             st.warning(
-                "Please upload a text-based PDF or DOCX resume."
+                "Please upload a text-based PDF or DOCX file."
             )
 
             st.stop()
 
 
         # ====================================================
-        # 13. RESUME INFORMATION
+        # 15. RESUME INFORMATION
         # ====================================================
 
         st.divider()
 
-        st.header("📊 Resume Information")
+        st.header(
+            "📊 Resume Information"
+        )
 
 
         info1, info2, info3, info4 = st.columns(4)
@@ -430,37 +458,47 @@ if uploaded_file is not None:
 
         with info2:
 
+            total_words = len(
+                resume_text.split()
+            )
+
             st.metric(
                 label="Total Words",
-                value=len(
-                    resume_text.split()
-                )
+                value=total_words
             )
 
 
         with info3:
 
+            total_characters = len(
+                resume_text
+            )
+
             st.metric(
                 label="Characters",
-                value=len(
-                    resume_text
-                )
+                value=total_characters
             )
 
 
         with info4:
 
+            file_size = (
+                uploaded_file.size / 1024
+            )
+
             st.metric(
                 label="File Size",
-                value=f"{uploaded_file.size / 1024:.1f} KB"
+                value=f"{file_size:.1f} KB"
             )
 
 
         # ====================================================
-        # 14. RESUME PREVIEW
+        # 16. RESUME PREVIEW
         # ====================================================
 
-        st.subheader("👁️ Resume Preview")
+        st.subheader(
+            "👁️ Resume Preview"
+        )
 
 
         with st.expander(
@@ -476,7 +514,7 @@ if uploaded_file is not None:
 
 
         # ====================================================
-        # 15. PREPROCESS RESUME
+        # 17. PREPROCESS RESUME
         # ====================================================
 
         with st.spinner(
@@ -491,61 +529,81 @@ if uploaded_file is not None:
         if not clean_resume.strip():
 
             st.error(
-                "The resume does not contain enough useful text for classification."
+                "The resume does not contain enough useful text."
             )
 
             st.stop()
 
 
         # ====================================================
-       # ====================================================
-# 16. TF-IDF TRANSFORMATION
-# ====================================================
+        # 18. TF-IDF TRANSFORMATION
+        # ====================================================
 
-resume_vector = vectorizer.transform(
-    [clean_resume]
-)
-
-
-# ====================================================
-# 17. PREDICTION WITH UNKNOWN DETECTION
-# ====================================================
-
-with st.spinner(
-    "🤖 AI is analyzing your resume..."
-):
-
-    # Get decision scores from Linear SVM
-    scores = model.decision_function(
-        resume_vector
-    )
-
-    # Find class with highest score
-    best_index = np.argmax(
-        scores[0]
-    )
-
-    # Predicted category
-    prediction = model.classes_[
-        best_index
-    ]
-
-    # Highest decision score
-    best_score = scores[0][
-        best_index
-    ]
-
-    # Starting threshold
-    threshold = 0.30
-
-    # Check whether resume matches trained categories
-    if best_score < threshold:
-
-        prediction = "Other / Unknown Resume"
+        resume_vector = vectorizer.transform(
+            [clean_resume]
+        )
 
 
         # ====================================================
-        # 18. CLASSIFICATION RESULT
+        # 19. LINEAR SVM PREDICTION
+        # ====================================================
+
+        with st.spinner(
+            "🤖 AI is analyzing your resume..."
+        ):
+
+            scores = model.decision_function(
+                resume_vector
+            )
+
+
+            # ----------------------------------------------
+            # Handle multiclass Linear SVM
+            # ----------------------------------------------
+
+            if len(scores.shape) == 1:
+
+                scores = scores.reshape(
+                    1,
+                    -1
+                )
+
+
+            # ----------------------------------------------
+            # Find highest scoring class
+            # ----------------------------------------------
+
+            best_index = np.argmax(
+                scores[0]
+            )
+
+
+            prediction = model.classes_[
+                best_index
+            ]
+
+
+            best_score = float(
+                scores[0][best_index]
+            )
+
+
+            # ----------------------------------------------
+            # Unknown resume threshold
+            # ----------------------------------------------
+
+            threshold = 0.30
+
+
+            if best_score < threshold:
+
+                prediction = (
+                    "Other / Unknown Resume"
+                )
+
+
+        # ====================================================
+        # 20. CLASSIFICATION RESULT
         # ====================================================
 
         st.divider()
@@ -562,16 +620,30 @@ with st.spinner(
 
         with result1:
 
-            st.success(
-                f"Predicted Category: {prediction}"
-            )
+            if prediction == "Other / Unknown Resume":
+
+                st.warning(
+                    "⚠️ This resume does not strongly match any trained category."
+                )
+
+                st.warning(
+                    f"Predicted Category: {prediction}"
+                )
+
+
+            else:
+
+                st.success(
+                    f"✅ Predicted Category: {prediction}"
+                )
+
 
             st.write(
                 """
-                The prediction was generated by analyzing
-                the technical skills, experience,
-                technologies and professional information
-                contained in the uploaded resume.
+                The classification is based on the
+                technical skills, technologies,
+                experience and professional information
+                detected in the uploaded resume.
                 """
             )
 
@@ -583,17 +655,87 @@ with st.spinner(
                 value=str(prediction)
             )
 
+            st.metric(
+                label="Decision Score",
+                value=f"{best_score:.3f}"
+            )
+
 
         # ====================================================
-        # 19. MODEL INFORMATION
+        # 21. DECISION SCORE INFORMATION
         # ====================================================
 
-        st.info(
+        if prediction == "Other / Unknown Resume":
+
+            st.info(
+                """
+                The resume received a weak match with
+                the four trained categories, so the
+                system marked it as Other / Unknown.
+                """
+            )
+
+        else:
+
+            st.info(
+                """
+                The resume received a sufficient match
+                with one of the categories learned by
+                the Linear SVM model.
+                """
+            )
+
+
+        # ====================================================
+        # 22. SHOW CATEGORY SCORES
+        # ====================================================
+
+        st.subheader(
+            "📈 Category Matching Scores"
+        )
+
+
+        score_data = {}
+
+
+        for category, score in zip(
+            model.classes_,
+            scores[0]
+        ):
+
+            score_data[
+                str(category)
+            ] = float(score)
+
+
+        st.bar_chart(
+            score_data
+        )
+
+
+        with st.expander(
+            "View individual category scores"
+        ):
+
+            for category, score in score_data.items():
+
+                st.write(
+                    f"{category}: {score:.3f}"
+                )
+
+
+        # ====================================================
+        # 23. IMPORTANT INFORMATION
+        # ====================================================
+
+        st.warning(
             """
-            ℹ️ The classifier can only predict one of the
-            four categories on which it was trained:
-            React Developer, SQL Developer,
-            PeopleSoft Resume or Workday.
+            Important: This model was trained mainly on
+            React Developer, SQL Developer, PeopleSoft
+            Resume and Workday resumes.
+
+            A resume from a completely different profession
+            may be marked as Other / Unknown Resume.
             """
         )
 
@@ -610,7 +752,7 @@ with st.spinner(
 
 
 # ============================================================
-# 20. HOW THE SYSTEM WORKS
+# 24. HOW THE SYSTEM WORKS
 # ============================================================
 
 st.divider()
@@ -631,8 +773,8 @@ with step1:
 
     st.write(
         """
-        Upload a resume in
-        PDF or DOCX format.
+        Upload a resume
+        in PDF or DOCX format.
         """
     )
 
@@ -645,8 +787,8 @@ with step2:
 
     st.write(
         """
-        The resume text is
-        extracted and cleaned.
+        Resume text is extracted,
+        cleaned and preprocessed.
         """
     )
 
@@ -659,9 +801,8 @@ with step3:
 
     st.write(
         """
-        TF-IDF converts the
-        resume text into
-        numerical features.
+        TF-IDF converts resume
+        text into numerical features.
         """
     )
 
@@ -669,20 +810,19 @@ with step3:
 with step4:
 
     st.subheader(
-        "4️⃣ Predict"
+        "4️⃣ Classify"
     )
 
     st.write(
         """
-        Linear SVM analyzes
-        the features and predicts
-        the resume category.
+        Linear SVM predicts the
+        most suitable resume category.
         """
     )
 
 
 # ============================================================
-# 21. TECHNOLOGIES USED
+# 25. TECHNOLOGIES USED
 # ============================================================
 
 st.divider()
@@ -692,7 +832,7 @@ st.header(
 )
 
 
-tech1, tech2, tech3 = st.columns(3)
+tech1, tech2, tech3, tech4 = st.columns(4)
 
 
 with tech1:
@@ -702,34 +842,83 @@ with tech1:
     )
 
     st.write(
-        "Programming and application development"
+        "Application development"
     )
 
 
 with tech2:
 
     st.subheader(
-        "🧠 Machine Learning"
+        "🧠 Scikit-learn"
     )
 
     st.write(
-        "Scikit-learn, TF-IDF and Linear SVM"
+        "Machine Learning"
     )
 
 
 with tech3:
 
     st.subheader(
+        "🔤 NLP"
+    )
+
+    st.write(
+        "Text preprocessing and TF-IDF"
+    )
+
+
+with tech4:
+
+    st.subheader(
         "🌐 Streamlit"
     )
 
     st.write(
-        "Interactive web application and deployment"
+        "Web application deployment"
     )
 
 
 # ============================================================
-# 22. PROJECT INFORMATION
+# 26. MODEL DETAILS
+# ============================================================
+
+st.divider()
+
+st.header(
+    "🤖 Model Details"
+)
+
+
+model1, model2, model3 = st.columns(3)
+
+
+with model1:
+
+    st.metric(
+        label="Algorithm",
+        value="Linear SVM"
+    )
+
+
+with model2:
+
+    st.metric(
+        label="Feature Extraction",
+        value="TF-IDF"
+    )
+
+
+with model3:
+
+    st.metric(
+        label="Known Classes",
+        value="4"
+    )
+
+
+# ============================================================
+# 27. PROJECT INFORMATION
 # ============================================================
 
 st.divider()
@@ -742,19 +931,19 @@ st.write(
     """
     **Project:** AI Resume Classification System
 
-    **Machine Learning Algorithm:** Linear Support Vector Machine
+    **Algorithm:** Linear Support Vector Machine
 
     **Feature Extraction:** TF-IDF Vectorization
 
-    **Natural Language Processing:** Text cleaning, stopword removal and stemming
+    **NLP Processing:** Text cleaning, stopword removal and stemming
 
-    **Web Framework:** Streamlit
+    **Web Application:** Streamlit
     """
 )
 
 
 # ============================================================
-# 23. FOOTER
+# 28. FOOTER
 # ============================================================
 
 st.divider()
