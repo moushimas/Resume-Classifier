@@ -1,3 +1,8 @@
+# ============================================================
+# AI RESUME CLASSIFICATION SYSTEM
+# app.py
+# ============================================================
+
 import streamlit as st
 import pdfplumber
 import docx2txt
@@ -23,316 +28,22 @@ st.set_page_config(
 
 
 # ============================================================
-# 2. CUSTOM CSS
-# ============================================================
-
-st.markdown("""
-<style>
-
-/* ---------------------------------------------------------
-   MAIN APP
---------------------------------------------------------- */
-
-.stApp {
-    background-color: #f4f7fb;
-}
-
-/* Main content */
-.block-container {
-    max-width: 1200px;
-    padding-top: 2rem;
-    padding-bottom: 3rem;
-}
-
-
-/* ---------------------------------------------------------
-   MAKE TEXT CLEARLY VISIBLE
---------------------------------------------------------- */
-
-.stApp,
-.stApp p,
-.stApp label,
-.stApp span {
-    color: #1f2937;
-}
-
-h1, h2, h3, h4 {
-    color: #172554 !important;
-}
-
-
-/* ---------------------------------------------------------
-   MAIN HEADER
---------------------------------------------------------- */
-
-.hero {
-    background: linear-gradient(
-        135deg,
-        #172554,
-        #1d4ed8
-    );
-
-    padding: 38px 30px;
-
-    border-radius: 18px;
-
-    text-align: center;
-
-    margin-bottom: 30px;
-
-    box-shadow: 0px 8px 25px rgba(0,0,0,0.12);
-}
-
-.hero h1 {
-    color: white !important;
-    font-size: 42px;
-    margin: 0;
-}
-
-.hero p {
-    color: #e0e7ff !important;
-    font-size: 18px;
-    margin-top: 12px;
-}
-
-
-/* ---------------------------------------------------------
-   CATEGORY CARDS
---------------------------------------------------------- */
-
-.category-card {
-
-    background-color: white;
-
-    border: 1px solid #e2e8f0;
-
-    border-radius: 14px;
-
-    padding: 22px 10px;
-
-    text-align: center;
-
-    min-height: 125px;
-
-    box-shadow:
-        0 4px 12px rgba(0,0,0,0.06);
-}
-
-.category-icon {
-    font-size: 32px;
-}
-
-.category-name {
-
-    color: #172554 !important;
-
-    font-size: 16px;
-
-    font-weight: 700;
-
-    margin-top: 8px;
-}
-
-
-/* ---------------------------------------------------------
-   RESULT
---------------------------------------------------------- */
-
-.result-box {
-
-    background-color: #ecfdf5;
-
-    border: 2px solid #10b981;
-
-    border-radius: 16px;
-
-    padding: 30px;
-
-    text-align: center;
-
-    margin-top: 20px;
-
-    box-shadow:
-        0 5px 15px rgba(0,0,0,0.07);
-}
-
-.result-label {
-
-    color: #374151 !important;
-
-    font-size: 17px;
-}
-
-.result-value {
-
-    color: #047857 !important;
-
-    font-size: 32px;
-
-    font-weight: 800;
-
-    margin-top: 8px;
-}
-
-
-/* ---------------------------------------------------------
-   FILE UPLOADER
---------------------------------------------------------- */
-
-[data-testid="stFileUploader"] {
-
-    background-color: white;
-
-    padding: 20px;
-
-    border-radius: 14px;
-
-    border: 2px dashed #94a3b8;
-}
-
-
-/* uploader text */
-
-[data-testid="stFileUploader"] * {
-    color: #1f2937 !important;
-}
-
-
-/* ---------------------------------------------------------
-   METRICS
---------------------------------------------------------- */
-
-[data-testid="stMetric"] {
-
-    background-color: white;
-
-    padding: 18px;
-
-    border-radius: 12px;
-
-    border: 1px solid #e2e8f0;
-}
-
-[data-testid="stMetricLabel"] * {
-
-    color: #475569 !important;
-}
-
-[data-testid="stMetricValue"] * {
-
-    color: #172554 !important;
-}
-
-
-/* ---------------------------------------------------------
-   TEXT AREA
---------------------------------------------------------- */
-
-textarea {
-
-    color: #111827 !important;
-
-    background-color: white !important;
-}
-
-
-/* ---------------------------------------------------------
-   SIDEBAR
---------------------------------------------------------- */
-
-[data-testid="stSidebar"] {
-
-    background-color: #172554;
-}
-
-[data-testid="stSidebar"] * {
-
-    color: white !important;
-}
-
-
-/* ---------------------------------------------------------
-   HOW IT WORKS CARDS
---------------------------------------------------------- */
-
-.step-card {
-
-    background-color: white;
-
-    border-radius: 14px;
-
-    padding: 20px;
-
-    min-height: 170px;
-
-    border: 1px solid #e2e8f0;
-
-    box-shadow:
-        0 3px 10px rgba(0,0,0,0.05);
-}
-
-.step-card h4 {
-
-    color: #172554 !important;
-}
-
-.step-card p {
-
-    color: #475569 !important;
-}
-
-
-/* ---------------------------------------------------------
-   FOOTER
---------------------------------------------------------- */
-
-.footer {
-
-    text-align: center;
-
-    color: #64748b !important;
-
-    font-size: 14px;
-
-    padding: 30px 10px;
-}
-
-.footer b {
-
-    color: #172554 !important;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-
-# ============================================================
-# 3. NLTK
+# 2. NLTK STOPWORDS
 # ============================================================
 
 try:
-
-    stop_words = set(
-        stopwords.words("english")
-    )
+    stop_words = set(stopwords.words("english"))
 
 except LookupError:
-
-    nltk.download(
-        "stopwords",
-        quiet=True
-    )
-
-    stop_words = set(
-        stopwords.words("english")
-    )
+    nltk.download("stopwords", quiet=True)
+    stop_words = set(stopwords.words("english"))
 
 
 stemmer = PorterStemmer()
 
 
 # ============================================================
-# 4. LOAD TRAINED MODEL
+# 3. LOAD MODEL AND TF-IDF VECTORIZER
 # ============================================================
 
 @st.cache_resource
@@ -350,7 +61,6 @@ def load_model():
 
 
 try:
-
     model, vectorizer = load_model()
 
 except Exception as e:
@@ -363,36 +73,36 @@ except Exception as e:
 
 
 # ============================================================
-# 5. TEXT PREPROCESSING
+# 4. PREPROCESS RESUME TEXT
 # ============================================================
 
 def preprocess_text(text):
 
-    # lowercase
+    # Convert text to lowercase
     text = str(text).lower()
 
-    # remove URLs
+    # Remove URLs
     text = re.sub(
         r"http\S+|www\S+",
         " ",
         text
     )
 
-    # remove email addresses
+    # Remove email addresses
     text = re.sub(
         r"\S+@\S+",
         " ",
         text
     )
 
-    # remove long numbers
+    # Remove long numbers
     text = re.sub(
         r"\d{10,}",
         " ",
         text
     )
 
-    # remove punctuation
+    # Remove punctuation
     text = text.translate(
         str.maketrans(
             string.punctuation,
@@ -400,26 +110,22 @@ def preprocess_text(text):
         )
     )
 
-    # split words
+    # Split into words
     words = text.split()
 
-    # stopword removal + stemming
+    # Remove stopwords and apply stemming
     words = [
-
         stemmer.stem(word)
-
         for word in words
-
         if word not in stop_words
         and len(word) > 1
-
     ]
 
     return " ".join(words)
 
 
 # ============================================================
-# 6. PDF TEXT EXTRACTION
+# 5. EXTRACT TEXT FROM PDF
 # ============================================================
 
 def extract_pdf(file):
@@ -433,109 +139,97 @@ def extract_pdf(file):
             page_text = page.extract_text()
 
             if page_text:
-
                 text += page_text + "\n"
 
     return text
 
 
 # ============================================================
-# 7. DOCX TEXT EXTRACTION
+# 6. EXTRACT TEXT FROM DOCX
 # ============================================================
 
 def extract_docx(file):
 
-    return docx2txt.process(file)
+    text = docx2txt.process(file)
+
+    return text
 
 
 # ============================================================
-# 8. SIDEBAR
+# 7. SIDEBAR
 # ============================================================
 
 with st.sidebar:
 
     st.title("📄 Resume AI")
 
-    st.markdown("---")
+    st.write(
+        "AI-powered Resume Classification System"
+    )
+
+    st.divider()
 
     st.subheader("About Project")
 
     st.write(
         """
-        AI Resume Classification System uses
-        Natural Language Processing and Machine
-        Learning to automatically classify resumes.
+        This application automatically analyzes
+        resumes and predicts their category using
+        Natural Language Processing and Machine Learning.
         """
     )
 
-    st.markdown("---")
+    st.divider()
 
-    st.subheader("Machine Learning")
+    st.subheader("Model Information")
 
-    st.write("🤖 **Model:** Linear SVM")
+    st.write("**Algorithm:** Linear SVM")
 
-    st.write("🔤 **Features:** TF-IDF")
+    st.write("**Feature Extraction:** TF-IDF")
 
-    st.write("📂 **Categories:** 4")
+    st.write("**Number of Categories:** 4")
 
-    st.markdown("---")
+    st.divider()
 
-    st.subheader("Supported Formats")
+    st.subheader("Supported Files")
 
     st.write("📕 PDF")
 
     st.write("📘 DOCX")
 
-    st.markdown("---")
+    st.divider()
 
-    st.caption(
-        "Resume Classification Project"
+    st.write(
+        "Machine Learning & NLP Project"
     )
 
 
 # ============================================================
-# 9. MAIN HEADER
+# 8. MAIN TITLE
 # ============================================================
 
-st.markdown(
-    """
-    <div class="hero">
-
-        <h1>
-            📄 AI Resume Classification System
-        </h1>
-
-        <p>
-            Automatically classify resumes using
-            Machine Learning and Natural Language Processing
-        </p>
-
-    </div>
-    """,
-    unsafe_allow_html=True
+st.title(
+    "📄 AI Resume Classification System"
 )
-
-
-# ============================================================
-# 10. WELCOME
-# ============================================================
-
-st.subheader("👋 Welcome")
 
 st.write(
     """
-    Upload a resume and the system will analyze its
-    content and predict the most suitable resume category
-    using our trained **Linear SVM machine learning model**.
+    Upload a resume and the system will automatically
+    analyze its content and predict the most suitable
+    resume category.
     """
 )
 
+st.divider()
+
 
 # ============================================================
-# 11. CATEGORIES
+# 9. SUPPORTED CATEGORIES
 # ============================================================
 
-st.subheader("🎯 Supported Resume Categories")
+st.header(
+    "🎯 Supported Resume Categories"
+)
 
 
 col1, col2, col3, col4 = st.columns(4)
@@ -543,127 +237,92 @@ col1, col2, col3, col4 = st.columns(4)
 
 with col1:
 
-    st.markdown(
-        """
-        <div class="category-card">
+    st.subheader(
+        "⚛️ React Developer"
+    )
 
-            <div class="category-icon">
-                ⚛️
-            </div>
-
-            <div class="category-name">
-                React Developer
-            </div>
-
-        </div>
-        """,
-        unsafe_allow_html=True
+    st.write(
+        "Frontend and React-based development resumes."
     )
 
 
 with col2:
 
-    st.markdown(
-        """
-        <div class="category-card">
+    st.subheader(
+        "🗄️ SQL Developer"
+    )
 
-            <div class="category-icon">
-                🗄️
-            </div>
-
-            <div class="category-name">
-                SQL Developer
-            </div>
-
-        </div>
-        """,
-        unsafe_allow_html=True
+    st.write(
+        "Database and SQL development resumes."
     )
 
 
 with col3:
 
-    st.markdown(
-        """
-        <div class="category-card">
+    st.subheader(
+        "🏢 Peoplesoft"
+    )
 
-            <div class="category-icon">
-                🏢
-            </div>
-
-            <div class="category-name">
-                Peoplesoft Resume
-            </div>
-
-        </div>
-        """,
-        unsafe_allow_html=True
+    st.write(
+        "PeopleSoft and enterprise application resumes."
     )
 
 
 with col4:
 
-    st.markdown(
-        """
-        <div class="category-card">
+    st.subheader(
+        "💼 Workday"
+    )
 
-            <div class="category-icon">
-                💼
-            </div>
-
-            <div class="category-name">
-                Workday
-            </div>
-
-        </div>
-        """,
-        unsafe_allow_html=True
+    st.write(
+        "Workday and HR technology resumes."
     )
 
 
-st.write("")
-st.write("")
+st.divider()
 
 
 # ============================================================
-# 12. UPLOAD RESUME
+# 10. UPLOAD RESUME
 # ============================================================
 
-st.subheader("📤 Upload Your Resume")
+st.header(
+    "📤 Upload Resume"
+)
 
 st.write(
-    "Upload your resume in **PDF or DOCX format**."
+    "Select a PDF or DOCX resume from your computer."
 )
 
 
 uploaded_file = st.file_uploader(
-
-    "Choose a resume",
-
+    "Choose Resume",
     type=[
         "pdf",
         "docx"
-    ],
-
-    help="Maximum recommended file size: 10 MB"
+    ]
 )
 
 
 # ============================================================
-# 13. WHEN FILE IS UPLOADED
+# 11. PROCESS UPLOADED RESUME
 # ============================================================
 
 if uploaded_file is not None:
 
     st.success(
-        f"✅ Successfully uploaded: {uploaded_file.name}"
+        "Resume uploaded successfully."
+    )
+
+    st.write(
+        f"**File Name:** {uploaded_file.name}"
     )
 
 
     try:
 
         # ====================================================
-        # EXTRACT TEXT
+        # 12. EXTRACT TEXT
         # ====================================================
 
         if uploaded_file.name.lower().endswith(".pdf"):
@@ -672,11 +331,13 @@ if uploaded_file is not None:
                 uploaded_file
             )
 
+
         elif uploaded_file.name.lower().endswith(".docx"):
 
             resume_text = extract_docx(
                 uploaded_file
             )
+
 
         else:
 
@@ -688,93 +349,96 @@ if uploaded_file is not None:
 
 
         # ====================================================
-        # CHECK TEXT
+        # 13. CHECK EXTRACTED TEXT
         # ====================================================
 
         if not resume_text.strip():
 
             st.error(
-                """
-                No readable text was found in this resume.
-
-                Please upload a text-based PDF or DOCX file.
-                """
+                "No readable text was found in the resume."
             )
 
             st.stop()
 
 
         # ====================================================
-        # FILE INFORMATION
+        # 14. RESUME INFORMATION
         # ====================================================
 
-        st.write("")
+        st.divider()
 
-        st.subheader("📊 Resume Information")
+        st.header(
+            "📊 Resume Information"
+        )
 
 
         info1, info2, info3 = st.columns(3)
 
 
+        # File Type
         with info1:
 
-            file_extension = (
+            file_type = (
                 uploaded_file.name
                 .split(".")[-1]
                 .upper()
             )
 
             st.metric(
-                label="File Type",
-                value=file_extension
+                "File Type",
+                file_type
             )
 
 
+        # Word Count
         with info2:
 
+            total_words = len(
+                resume_text.split()
+            )
+
             st.metric(
-                label="Total Words",
-                value=len(
-                    resume_text.split()
-                )
+                "Total Words",
+                total_words
             )
 
 
+        # Character Count
         with info3:
 
+            total_characters = len(
+                resume_text
+            )
+
             st.metric(
-                label="Characters",
-                value=len(
-                    resume_text
-                )
+                "Characters",
+                total_characters
             )
 
 
         # ====================================================
-        # RESUME PREVIEW
+        # 15. RESUME PREVIEW
         # ====================================================
 
-        st.write("")
+        st.subheader(
+            "👁️ Resume Preview"
+        )
+
 
         with st.expander(
-            "👁️ View Extracted Resume Text",
-            expanded=False
+            "View Extracted Resume Text"
         ):
 
             st.text_area(
-
                 "Resume Content",
-
                 value=resume_text[:5000],
-
                 height=300,
-
                 disabled=True
             )
 
 
         # ====================================================
-        # PREPROCESS
+        # 16. PREPROCESS RESUME
         # ====================================================
 
         clean_resume = preprocess_text(
@@ -785,14 +449,14 @@ if uploaded_file is not None:
         if not clean_resume.strip():
 
             st.error(
-                "Resume contains insufficient text for prediction."
+                "The resume does not contain enough text for prediction."
             )
 
             st.stop()
 
 
         # ====================================================
-        # VECTORIZE
+        # 17. TF-IDF TRANSFORMATION
         # ====================================================
 
         resume_vector = vectorizer.transform(
@@ -801,11 +465,18 @@ if uploaded_file is not None:
 
 
         # ====================================================
-        # PREDICT
+        # 18. MODEL PREDICTION
         # ====================================================
 
+        st.divider()
+
+        st.header(
+            "🤖 Resume Analysis"
+        )
+
+
         with st.spinner(
-            "🤖 Analyzing resume..."
+            "Analyzing resume..."
         ):
 
             prediction = model.predict(
@@ -814,47 +485,36 @@ if uploaded_file is not None:
 
 
         # ====================================================
-        # SHOW RESULT
+        # 19. DISPLAY RESULT
         # ====================================================
 
-        st.write("")
-
-        st.subheader("🎯 Classification Result")
-
-
-        st.markdown(
-            f"""
-            <div class="result-box">
-
-                <div class="result-label">
-
-                    Predicted Resume Category
-
-                </div>
-
-                <div class="result-value">
-
-                    {prediction}
-
-                </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
+        st.success(
+            "Resume analysis completed successfully."
         )
 
 
-        st.write("")
+        st.subheader(
+            "🎯 Predicted Category"
+        )
+
+
+        st.title(
+            prediction
+        )
 
 
         st.info(
             """
-            💡 The prediction is based on the skills,
-            technologies, experience and professional
-            information found in the uploaded resume.
+            The predicted category is determined from
+            the skills, technologies, experience and
+            professional information available in the resume.
             """
         )
 
+
+    # ========================================================
+    # ERROR HANDLING
+    # ========================================================
 
     except Exception as e:
 
@@ -864,16 +524,14 @@ if uploaded_file is not None:
 
 
 # ============================================================
-# 14. HOW SYSTEM WORKS
+# 20. HOW THE SYSTEM WORKS
 # ============================================================
 
-st.write("")
-st.write("")
+st.divider()
 
-st.markdown("---")
-
-
-st.subheader("⚙️ How The System Works")
+st.header(
+    "⚙️ How the System Works"
+)
 
 
 step1, step2, step3, step4 = st.columns(4)
@@ -881,124 +539,123 @@ step1, step2, step3, step4 = st.columns(4)
 
 with step1:
 
-    st.markdown(
+    st.subheader(
+        "1️⃣ Upload"
+    )
+
+    st.write(
         """
-        <div class="step-card">
-
-        <h4>
-        1️⃣ Upload
-        </h4>
-
-        <p>
         Upload a resume in
         PDF or DOCX format.
-        </p>
-
-        </div>
-        """,
-        unsafe_allow_html=True
+        """
     )
 
 
 with step2:
 
-    st.markdown(
+    st.subheader(
+        "2️⃣ Preprocess"
+    )
+
+    st.write(
         """
-        <div class="step-card">
-
-        <h4>
-        2️⃣ Preprocessing
-        </h4>
-
-        <p>
-        Resume text is extracted,
-        cleaned and preprocessed.
-        </p>
-
-        </div>
-        """,
-        unsafe_allow_html=True
+        Resume text is extracted
+        and cleaned using NLP.
+        """
     )
 
 
 with step3:
 
-    st.markdown(
+    st.subheader(
+        "3️⃣ TF-IDF"
+    )
+
+    st.write(
         """
-        <div class="step-card">
-
-        <h4>
-        3️⃣ TF-IDF
-        </h4>
-
-        <p>
-        Text is converted into
-        numerical features using TF-IDF.
-        </p>
-
-        </div>
-        """,
-        unsafe_allow_html=True
+        TF-IDF converts the
+        resume text into
+        numerical features.
+        """
     )
 
 
 with step4:
 
-    st.markdown(
+    st.subheader(
+        "4️⃣ Predict"
+    )
+
+    st.write(
         """
-        <div class="step-card">
-
-        <h4>
-        4️⃣ Prediction
-        </h4>
-
-        <p>
-        Linear SVM analyzes the
-        features and predicts a category.
-        </p>
-
-        </div>
-        """,
-        unsafe_allow_html=True
+        Linear SVM analyzes
+        the features and predicts
+        the resume category.
+        """
     )
 
 
 # ============================================================
-# 15. TECHNOLOGIES
+# 21. TECHNOLOGIES
 # ============================================================
 
-st.write("")
-st.write("")
+st.divider()
 
-st.subheader("🛠️ Technologies Used")
-
-st.write(
-    """
-    **Python • Streamlit • Scikit-learn • NLTK •
-    TF-IDF • Linear SVM • PDFPlumber**
-    """
+st.header(
+    "🛠️ Technologies Used"
 )
 
 
+tech1, tech2, tech3 = st.columns(3)
+
+
+with tech1:
+
+    st.subheader(
+        "Programming"
+    )
+
+    st.write("🐍 Python")
+
+    st.write("🎈 Streamlit")
+
+
+with tech2:
+
+    st.subheader(
+        "Machine Learning"
+    )
+
+    st.write("🤖 Linear SVM")
+
+    st.write("🔤 TF-IDF")
+
+    st.write("📊 Scikit-learn")
+
+
+with tech3:
+
+    st.subheader(
+        "Text Processing"
+    )
+
+    st.write("📚 NLTK")
+
+    st.write("📄 PDFPlumber")
+
+    st.write("📘 Docx2txt")
+
+
 # ============================================================
-# 16. FOOTER
+# 22. FOOTER
 # ============================================================
 
-st.markdown(
-    """
-    <div class="footer">
+st.divider()
 
-        <hr>
+st.subheader(
+    "📄 AI Resume Classification System"
+)
 
-        <b>
-        📄 AI Resume Classification System
-        </b>
-
-        <br><br>
-
-        Machine Learning & Natural Language Processing Project
-
-    </div>
-    """,
-    unsafe_allow_html=True
+st.write(
+    "Machine Learning and Natural Language Processing Project"
 )
