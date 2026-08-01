@@ -1,4 +1,4 @@
-!pip install -q streamlit
+
 import streamlit as st
 import pdfplumber
 import docx2txt
