@@ -1,9 +1,0 @@
-streamlit
-scikit-learn
-joblib
-pdfplumber
-python-docx
-docx2txt
-nltk
-numpy
-pandas
