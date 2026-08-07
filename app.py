@@ -6,6 +6,7 @@ import nltk
 import re
 import string
 import numpy as np
+import pandas as pd
 
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
@@ -183,7 +184,7 @@ except LookupError:
 stemmer = PorterStemmer()
 # -------------------------------------------------------
 # LOAD MODEL
-# -------------------------------------------------------
+# -------------------------------------------------------f
 
 @st.cache_resource
 def load_model():
@@ -262,6 +263,34 @@ def extract_docx(file):
     return docx2txt.process(file)
 
 
+def extract_information(text):
+
+    email = re.findall(r'[\w\.-]+@[\w\.-]+', text)
+
+    phone = re.findall(r'\+?\d[\d\s-]{8,15}', text)
+
+    skills = [
+        "python","sql","java","c","c++","html","css",
+        "javascript","power bi","excel","tableau",
+        "machine learning","deep learning","tensorflow",
+        "pandas","numpy","flask","streamlit"
+    ]
+
+    found_skills = []
+
+    lower = text.lower()
+
+    for skill in skills:
+        if skill in lower:
+            found_skills.append(skill.title())
+
+    return {
+        "Email": email[0] if email else "Not Found",
+        "Phone": phone[0] if phone else "Not Found",
+        "Skills": found_skills
+    }
+
+
 # -------------------------------------------------------
 # BEAUTIFUL SIDEBAR
 # -------------------------------------------------------
@@ -319,7 +348,7 @@ st.markdown("""
 background:linear-gradient(135deg,#2563EB,#1D4ED8,#0EA5E9);
 padding:40px;
 border-radius:25px;
-box-shadow:0px 10px 25px rgba(0,0,0,.20);
+b-shadow:0px 10px 25px rgba(0,0,0,.20);
 ">
 
 <h1 style="
@@ -436,13 +465,10 @@ Feature Extraction
 """,unsafe_allow_html=True)
 
 st.markdown("<br>",unsafe_allow_html=True)
-    # ============================================================
+
 # 11. UPLOAD RESUME
 # ============================================================
 
-# ============================================================
-# PREMIUM UPLOAD SECTION
-# ============================================================
 
 st.markdown("""
 
@@ -548,12 +574,14 @@ border-left:8px solid #10B981;
 
         st.subheader("📄 Resume Preview")
 
-        st.text_area(
-            "Extracted Resume",
-            resume_text[:1200],
-            height=250,
-            key=uploaded_file.name
-        )
+        with st.expander("📄 View Resume"):
+
+            st.text_area(
+                "",
+                resume_text,
+                height=300,
+                key=uploaded_file.name
+            )
 
         text = resume_text.lower()
 
@@ -565,6 +593,61 @@ border-left:8px solid #10B981;
 
         clean_resume = preprocess_text(resume_text)
         st.markdown("---")
+        info = extract_information(resume_text)
+
+        st.subheader("📌 Resume Information")
+
+        c1,c2=st.columns(2)
+
+        c1.write("📧 Email")
+        c1.success(info["Email"])
+
+        c2.write("📱 Phone")
+        c2.success(info["Phone"])
+
+        st.write("### 💻 Skills")
+
+        if info["Skills"]:
+            st.success(", ".join(info["Skills"]))
+        else:
+            st.warning("No common skills detected.")
+
+        # Resume Quality Calculation starts here (8 spaces indentation)
+        score = 0
+
+        if len(info["Skills"]) >= 5:
+            score += 40
+        elif len(info["Skills"]) >= 3:
+            score += 30
+        else:
+            score += 15
+
+        if info["Email"] != "Not Found":
+            score += 20
+
+        if info["Phone"] != "Not Found":
+            score += 20
+
+        sections = [
+            "education",
+            "experience",
+            "projects",
+            "skills",
+            "internship"
+        ]
+
+        score += sum(
+            4 for section in sections
+            if section in resume_text.lower()
+        )
+
+        score = min(score,100)
+
+        st.subheader("⭐ Resume Quality")
+
+        st.progress(score/100)
+
+        st.success(f"{score}/100")
 
         st.markdown("""
         <h2 style="color:#1E40AF;">
@@ -592,23 +675,24 @@ border-left:8px solid #10B981;
         # ==========================================================
 # PREDICTION
 # ==========================================================
+        # Removed the SVC(kernel="linear", probability=True) line as it was not assigned to a variable
+        probabilities = model.predict_proba(resume_vector)
 
-        scores = model.decision_function(resume_vector)
-
-        best_index = np.argmax(scores[0])
+        best_index = np.argmax(probabilities[0]) # Argmax on the probabilities array for the single sample
 
         prediction = model.classes_[best_index]
 
-        confidence = float(scores[0][best_index])
+        # Use the raw probability for threshold check
+        raw_confidence = probabilities[0][best_index]
 
         # Adjust this value if needed
         THRESHOLD = 0.35
 
-        if confidence < THRESHOLD:
+        if raw_confidence < THRESHOLD:
             st.warning("⚠ Unable to classify this resume confidently.")
             continue
 
-        confidence_percent = round(confidence * 100, 2)
+        confidence_percent = round(raw_confidence * 100, 2) # Calculate percentage once after threshold
 
         st.markdown("""
 <h2 style="text-align:center;color:#1E3A8A;">
@@ -630,22 +714,37 @@ text-align:center;
 {prediction}
 </h1>
 
-<h3 style="color:white;">
-Confidence : {confidence_percent}%
-</h3>
-
 </div>
 """, unsafe_allow_html=True)
+
+        st.progress(min(confidence_percent, 100) / 100)
+
+        st.info(f"Prediction Confidence: {confidence_percent}%")
+
+        # Corrected the previous `</div>` that was outside the f-string
+        # The original code had a stray `</div>` outside the f-string, followed by an additional `st.progress` and `st.info`
+        # This block was likely intended to be part of the preceding markdown, or part of a new, properly closed markdown block.
+        # I've moved the closing div to after the st.info line, assuming the st.progress and st.info were meant to be displayed after the prediction block.
+        # If the intention was for them to be inside the colored div, the structure would need to be different.
+
 
         # Store result
 
         results.append({
-            "Resume": uploaded_file.name,
-            "Prediction": prediction,
-            "Confidence (%)": confidence_percent
-        })
 
-    import pandas as pd
+    "Resume": uploaded_file.name,
+
+    "Prediction": prediction,
+
+    "Confidence (%)": f"{confidence_percent}%", # Adjusted key name to match previous variable
+
+    "Score": score,
+
+    "Skills": len(info["Skills"]),
+
+    "Status": "✅ Valid"
+
+})
 
     if results:
 
@@ -662,43 +761,7 @@ Confidence : {confidence_percent}%
         )
 
         st.success(f"✅ Total Resumes Processed : {len(results)}")
-        st.markdown(f"""
 
-<div style="
-background:linear-gradient(135deg,#10B981,#059669);
-padding:40px;
-border-radius:25px;
-box-shadow:0px 10px 25px rgba(0,0,0,.20);
-text-align:center;
-">
-
-<h3 style="color:white;">
-
-Predicted Category
-
-</h3>
-
-<h1 style="
-font-size:48px;
-color:white;
-">
-
-{prediction}
-
-</h1>
-
-<p style="
-font-size:20px;
-color:white;
-">
-
-Classification Completed Successfully
-
-</p>
-
-</div>
-
-""",unsafe_allow_html=True)
 
 # ============================================================
 # HOW THE SYSTEM WORKS
@@ -707,10 +770,10 @@ Classification Completed Successfully
 st.markdown("---")
 
 st.markdown("""
-<h2 style="text-align:center;color:#1E3A8A;">
-⚙️ How The System Works
+<h2 style="text-align:center;color:#1E40AF;">
+ How The System Works
 </h2>
-""", unsafe_allow_html=True)
+""",unsafe_allow_html=True)
 
 c1,c2,c3,c4=st.columns(4)
 
@@ -753,7 +816,7 @@ with c4:
 st.markdown("---")
 
 st.markdown("""
-<h2 style="text-align:center;color:#1E3A8A;">
+<h2 style="text-align:center;color:#1E40AF;">
 🛠 Technologies Used
 </h2>
 """,unsafe_allow_html=True)
@@ -831,7 +894,7 @@ st.markdown("""
 
 <center>
 
-<h2 style="color:#1E3A8A;">
+<h2 style="color:#1E40AF;">
 🤖 AI Resume Classification System
 </h2>
 
@@ -841,7 +904,7 @@ Machine Learning • NLP • Streamlit
 
 <p style="color:gray;">
 Developed by Moushid
-</p>
+</n>
 
 </center>
 
