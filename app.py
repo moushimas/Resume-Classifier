@@ -7,6 +7,7 @@ import re
 import string
 import numpy as np
 import pandas as pd
+from scipy.special import softmax 
 
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
@@ -675,8 +676,8 @@ border-left:8px solid #10B981;
         # ==========================================================
 # PREDICTION
 # ==========================================================
-        # Removed the SVC(kernel="linear", probability=True) line as it was not assigned to a variable
-        probabilities = model.predict_proba(resume_vector)
+        decision_scores = model.decision_function(resume_vector)
+        probabilities = softmax(decision_scores, axis=1) # Apply softmax to convert scores to probabilities
 
         best_index = np.argmax(probabilities[0]) # Argmax on the probabilities array for the single sample
 
