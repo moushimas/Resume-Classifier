@@ -510,7 +510,7 @@ if uploaded_files:
 
         st.success(f"✅ {uploaded_file.name} Uploaded Successfully")
 
-    st.markdown("""
+        st.markdown("""
 <div style="
 background:#ECFDF5;
 padding:18px;
@@ -528,9 +528,8 @@ border-left:8px solid #10B981;
 
 """,unsafe_allow_html=True)
 
-    # --- ADDED: Logic to extract resume text based on file type ---
-           file_extension = uploaded_file.name.split(".")[-1].lower()
-
+        # --- ADDED: Logic to extract resume text based on file type ---
+        file_extension = uploaded_file.name.split(".")[-1].lower()
         resume_text = ""
 
         if file_extension == "pdf":
@@ -565,59 +564,59 @@ border-left:8px solid #10B981;
             continue
 
         clean_resume = preprocess_text(resume_text)
-    st.markdown("---")
+        st.markdown("---")
 
-    st.markdown("""
-    <h2 style="color:#1E40AF;">
-    📊 Resume Statistics
-    </h2>
-    """,unsafe_allow_html=True)
+        st.markdown("""
+        <h2 style="color:#1E40AF;">
+        📊 Resume Statistics
+        </h2>
+        """,unsafe_allow_html=True)
 
-    file_type = uploaded_file.name.split(".")[-1].upper()
+        file_type = uploaded_file.name.split(".")[-1].upper()
 
-    c1, c2, c3, c4 = st.columns(4)
+        c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric("📄 File Type", file_type)
-    c2.metric("📝 Words", len(resume_text.split()))
-    c3.metric("🔤 Characters", len(resume_text))
-    c4.metric("💾 Size", f"{uploaded_file.size/1024:.1f} KB")
+        c1.metric("📄 File Type", file_type)
+        c2.metric("📝 Words", len(resume_text.split()))
+        c3.metric("🔤 Characters", len(resume_text))
+        c4.metric("💾 Size", f"{uploaded_file.size/1024:.1f} KB")
 
-  
-  # ==========================================================
+
+      # ==========================================================
 # TF-IDF
 # ==========================================================
 
-with st.spinner("🧠 Extracting Features..."):
-    resume_vector = vectorizer.transform([clean_resume])
+        with st.spinner("🧠 Extracting Features..."):
+            resume_vector = vectorizer.transform([clean_resume])
 
-# ==========================================================
+        # ==========================================================
 # PREDICTION
 # ==========================================================
 
-scores = model.decision_function(resume_vector)
+        scores = model.decision_function(resume_vector)
 
-best_index = np.argmax(scores[0])
+        best_index = np.argmax(scores[0])
 
-prediction = model.classes_[best_index]
+        prediction = model.classes_[best_index]
 
-confidence = float(scores[0][best_index])
+        confidence = float(scores[0][best_index])
 
-# Adjust this value if needed
-THRESHOLD = 0.35
+        # Adjust this value if needed
+        THRESHOLD = 0.35
 
-if confidence < THRESHOLD:
-    st.warning("⚠ Unable to classify this resume confidently.")
-    continue
+        if confidence < THRESHOLD:
+            st.warning("⚠ Unable to classify this resume confidently.")
+            continue
 
-confidence_percent = round(confidence * 100, 2)
+        confidence_percent = round(confidence * 100, 2)
 
-st.markdown("""
+        st.markdown("""
 <h2 style="text-align:center;color:#1E3A8A;">
 🎯 AI Prediction
 </h2>
 """, unsafe_allow_html=True)
 
-st.markdown(f"""
+        st.markdown(f"""
 <div style="
 background:linear-gradient(135deg,#10B981,#059669);
 padding:35px;
@@ -638,44 +637,32 @@ Confidence : {confidence_percent}%
 </div>
 """, unsafe_allow_html=True)
 
-# ==========================================================
-# Resume Statistics
-# ==========================================================
+        # Store result
 
-file_type = uploaded_file.name.split(".")[-1].upper()
+        results.append({
+            "Resume": uploaded_file.name,
+            "Prediction": prediction,
+            "Confidence (%)": confidence_percent
+        })
 
-c1, c2, c3, c4 = st.columns(4)
+    import pandas as pd
 
-c1.metric("📄 File Type", file_type)
-c2.metric("📝 Words", len(resume_text.split()))
-c3.metric("🔤 Characters", len(resume_text))
-c4.metric("💾 Size", f"{uploaded_file.size/1024:.1f} KB")
+    if results:
 
-# Store result
+        st.markdown("---")
 
-results.append({
-    "Resume": uploaded_file.name,
-    "Prediction": prediction,
-    "Confidence (%)": confidence_percent
-})
-import pandas as pd
+        st.header("📊 Prediction Summary")
 
-if results:
+        df = pd.DataFrame(results)
 
-    st.markdown("---")
+        st.dataframe(
+            df,
+            use_container_width=True,
+            hide_index=True
+        )
 
-    st.header("📊 Prediction Summary")
-
-    df = pd.DataFrame(results)
-
-    st.dataframe(
-        df,
-        use_container_width=True,
-        hide_index=True
-    )
-
-    st.success(f"✅ Total Resumes Processed : {len(results)}")
-    st.markdown(f"""
+        st.success(f"✅ Total Resumes Processed : {len(results)}")
+        st.markdown(f"""
 
 <div style="
 background:linear-gradient(135deg,#10B981,#059669);
