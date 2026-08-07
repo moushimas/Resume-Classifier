@@ -24,30 +24,32 @@ st.set_page_config(
 # -------------------------------------------------------
 # CUSTOM CSS
 # -------------------------------------------------------
-
 st.markdown("""
 <style>
 
-/* ===========================
-   MAIN APP
-=========================== */
+/* ================= MAIN APP ================= */
 
 .stApp{
-    background:linear-gradient(135deg,#EEF4FF,#F8FAFC,#FFFFFF);
+    background:#F4F8FC;
 }
+
+/* Main container */
 
 .block-container{
+    max-width:1200px;
     padding-top:2rem;
     padding-bottom:2rem;
-    max-width:1200px;
 }
 
-/* ===========================
-   TEXT COLORS
-=========================== */
+/* ================= TEXT ================= */
 
-body{
-    color:#1E293B;
+html,
+body,
+p,
+label,
+span,
+div{
+    color:#1F2937;
 }
 
 h1,h2,h3,h4,h5{
@@ -55,52 +57,37 @@ h1,h2,h3,h4,h5{
     font-weight:700;
 }
 
-p{
-    color:#334155;
-}
-
-/* ===========================
-   SIDEBAR
-=========================== */
+/* ================= SIDEBAR ================= */
 
 section[data-testid="stSidebar"]{
-    background:linear-gradient(180deg,#0F172A,#1E3A8A);
+    background:#1E3A8A;
 }
 
-section[data-testid="stSidebar"] h1,
-section[data-testid="stSidebar"] h2,
-section[data-testid="stSidebar"] h3,
-section[data-testid="stSidebar"] p,
-section[data-testid="stSidebar"] label,
-section[data-testid="stSidebar"] span{
-
+section[data-testid="stSidebar"] *{
     color:white !important;
-
 }
 
-/* ===========================
-   METRIC CARDS
-=========================== */
+/* ================= METRICS ================= */
 
 div[data-testid="stMetric"]{
 
-    background:white;
+    background:#FFFFFF;
 
     border-radius:18px;
 
     padding:18px;
 
-    box-shadow:0 8px 20px rgba(0,0,0,.08);
+    border:1px solid #E5E7EB;
+
+    box-shadow:0px 5px 15px rgba(0,0,0,.08);
 
 }
 
-/* ===========================
-   BUTTONS
-=========================== */
+/* ================= BUTTON ================= */
 
 .stButton>button{
 
-    background:linear-gradient(90deg,#2563EB,#3B82F6);
+    background:#2563EB;
 
     color:white;
 
@@ -108,19 +95,81 @@ div[data-testid="stMetric"]{
 
     border-radius:12px;
 
-    height:52px;
+    height:48px;
 
-    font-size:18px;
-
-    font-weight:bold;
+    font-size:17px;
 
 }
 
 .stButton>button:hover{
 
-    background:linear-gradient(90deg,#1D4ED8,#2563EB);
+    background:#1D4ED8;
 
 }
+
+/* ================= FILE UPLOADER ================= */
+
+[data-testid="stFileUploader"]{
+
+    background:#FFFFFF;
+
+    border-radius:18px;
+
+    border:2px dashed #2563EB;
+
+    padding:18px;
+
+}
+
+/* ================= TEXT AREA ================= */
+
+textarea{
+
+    color:#111827 !important;
+
+    background:#FFFFFF !important;
+
+}
+
+/* ================= EXPANDER ================= */
+
+details{
+
+    background:#FFFFFF;
+
+    border-radius:12px;
+
+    padding:10px;
+
+}
+
+/* ================= ALERTS ================= */
+
+div[data-baseweb="notification"]{
+
+    color:#111827 !important;
+
+}
+
+/* ================= INPUT ================= */
+
+input{
+
+    color:#111827 !important;
+
+}
+
+/* ================= MARKDOWN ================= */
+
+[data-testid="stMarkdownContainer"]{
+
+    color:#111827;
+
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 
 /* ===========================
    FILE UPLOADER
@@ -136,60 +185,27 @@ div[data-testid="stMetric"]{
 
     border:2px dashed #2563EB;
 
-}
+ st.markdown("""
+<div style="
+background:#2563EB;
+padding:30px;
+border-radius:20px;
+text-align:center;
+">
 
-/* ===========================
-   EXPANDER
-=========================== */
+<h1 style="color:white;">
+🤖 AI Resume Classification System
+</h1>
 
-.streamlit-expanderHeader{
+<p style="color:#E0F2FE;font-size:20px;">
+Smart Resume Analysis Using Machine Learning & NLP
+</p>
 
-    font-size:18px;
+</div>
+""", unsafe_allow_html=True)
 
-    font-weight:bold;
 
-    color:#1E40AF;
-
-}
-
-/* ===========================
-   RESULT CARD
-=========================== */
-
-.result-card{
-
-    background:linear-gradient(135deg,#2563EB,#0EA5E9);
-
-    color:white;
-
-    padding:35px;
-
-    border-radius:20px;
-
-    text-align:center;
-
-    box-shadow:0 12px 25px rgba(0,0,0,.2);
-
-}
-
-/* ===========================
-   UPLOAD CARD
-=========================== */
-
-.upload-card{
-
-    background:white;
-
-    border-radius:20px;
-
-    padding:25px;
-
-    box-shadow:0 8px 18px rgba(0,0,0,.08);
-
-}
-
-</style>
-""",unsafe_allow_html=True)
+  
 
 # -------------------------------------------------------
 # NLTK
