@@ -170,51 +170,17 @@ input{
 </style>
 """, unsafe_allow_html=True)
 
-
-/* ===========================
-   FILE UPLOADER
-=========================== */
-
-[data-testid="stFileUploader"]{
-
-    background:white;
-
-    padding:18px;
-
-    border-radius:18px;
-
-    border:2px dashed #2563EB;
-
- st.markdown("""
-<style>
-
-.stApp{
-    background:#F4F8FC;
-}
-
-.metric-card{
-    padding:18px;
-    background:white;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-
-  
-
-# -------------------------------------------------------
+ # -------------------------------------------------------
 # NLTK
 # -------------------------------------------------------
 
 try:
-    stop_words=set(stopwords.words("english"))
+    stop_words = set(stopwords.words("english"))
 except LookupError:
-    nltk.download("stopwords",quiet=True)
-    stop_words=set(stopwords.words("english"))
+    nltk.download("stopwords", quiet=True)
+    stop_words = set(stopwords.words("english"))
 
-stemmer=PorterStemmer()
-
+stemmer = PorterStemmer()
 # -------------------------------------------------------
 # LOAD MODEL
 # -------------------------------------------------------
