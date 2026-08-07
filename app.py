@@ -479,18 +479,36 @@ predict the most suitable job category.
 
 st.write("")
 
-uploaded_file = st.file_uploader(
-    "📂 Drag & Drop Resume Here",
-    type=["pdf","docx"]
+uploaded_files = st.file_uploader(
+    "📂 Upload Resume(s)",
+    type=["pdf", "docx"],
+    accept_multiple_files=True
 )
 
 st.write("")
 
-if uploaded_file:
+results = []
 
-    st.balloons()
+resume_keywords = [
+    "education",
+    "experience",
+    "skills",
+    "projects",
+    "internship",
+    "objective",
+    "certification",
+    "profile",
+    "summary"
+]
 
-    st.success(f"✅ {uploaded_file.name} Uploaded Successfully")
+if uploaded_files:
+
+    for uploaded_file in uploaded_files:
+
+        st.markdown("---")
+        st.subheader(f"📄 {uploaded_file.name}")
+
+        st.success(f"✅ {uploaded_file.name} Uploaded Successfully")
 
     st.markdown("""
 <div style="
@@ -511,29 +529,42 @@ border-left:8px solid #10B981;
 """,unsafe_allow_html=True)
 
     # --- ADDED: Logic to extract resume text based on file type ---
-    file_extension = uploaded_file.name.split(".")[-1].lower()
-    resume_text = ""
-    if file_extension == "pdf":
-        resume_text = extract_pdf(uploaded_file)
-    elif file_extension == "docx":
-        resume_text = extract_docx(uploaded_file)
-    else:
-        st.error("Unsupported file type. Please upload a PDF or DOCX file.")
-        st.stop()
+           file_extension = uploaded_file.name.split(".")[-1].lower()
 
-    # --------------------------------------------
-    # Validate Resume
-    # --------------------------------------------
+        resume_text = ""
 
-    if not resume_text.strip():
+        if file_extension == "pdf":
+            resume_text = extract_pdf(uploaded_file)
 
-        st.error("Resume text not found.")
+        elif file_extension == "docx":
+            resume_text = extract_docx(uploaded_file)
 
-        st.stop()
+        else:
+            st.error("Unsupported File")
+            continue
 
-    # --- ADDED: Preprocess resume text ---
-    clean_resume = preprocess_text(resume_text)
+        if not resume_text.strip():
+            st.error("No text found in resume.")
+            continue
 
+        st.subheader("📄 Resume Preview")
+
+        st.text_area(
+            "Extracted Resume",
+            resume_text[:1200],
+            height=250,
+            key=uploaded_file.name
+        )
+
+        text = resume_text.lower()
+
+        matches = sum(keyword in text for keyword in resume_keywords)
+
+        if matches < 2:
+            st.error("❌ This file doesn't appear to be a resume.")
+            continue
+
+        clean_resume = preprocess_text(resume_text)
     st.markdown("---")
 
     st.markdown("""
@@ -551,37 +582,99 @@ border-left:8px solid #10B981;
     c3.metric("🔤 Characters", len(resume_text))
     c4.metric("💾 Size", f"{uploaded_file.size/1024:.1f} KB")
 
-    # ==========================================================
-    # TF-IDF TRANSFORMATION
-    # ==========================================================
+  
+  # ==========================================================
+# TF-IDF
+# ==========================================================
 
-    with st.spinner("🧠 Extracting Features..."):
+with st.spinner("🧠 Extracting Features..."):
+    resume_vector = vectorizer.transform([clean_resume])
 
-        resume_vector = vectorizer.transform(
-            [clean_resume]
-        )
+# ==========================================================
+# PREDICTION
+# ==========================================================
 
-    # ==========================================================
-    # AI PREDICTION
-    # ==========================================================
-    # --- ADDED: Make prediction ---
-    scores = model.decision_function(resume_vector)
-    best_index = np.argmax(scores[0])
-    prediction = model.classes_[best_index]
+scores = model.decision_function(resume_vector)
 
-    st.markdown("""
+best_index = np.argmax(scores[0])
 
-<h2 style="
+prediction = model.classes_[best_index]
+
+confidence = float(scores[0][best_index])
+
+# Adjust this value if needed
+THRESHOLD = 0.35
+
+if confidence < THRESHOLD:
+    st.warning("⚠ Unable to classify this resume confidently.")
+    continue
+
+confidence_percent = round(confidence * 100, 2)
+
+st.markdown("""
+<h2 style="text-align:center;color:#1E3A8A;">
+🎯 AI Prediction
+</h2>
+""", unsafe_allow_html=True)
+
+st.markdown(f"""
+<div style="
+background:linear-gradient(135deg,#10B981,#059669);
+padding:35px;
+border-radius:20px;
 text-align:center;
-color:#1E3A8A;
 ">
 
-🎯 AI Prediction
+<h3 style="color:white;">Predicted Category</h3>
 
-</h2>
+<h1 style="color:white;">
+{prediction}
+</h1>
 
-""",unsafe_allow_html=True)
+<h3 style="color:white;">
+Confidence : {confidence_percent}%
+</h3>
 
+</div>
+""", unsafe_allow_html=True)
+
+# ==========================================================
+# Resume Statistics
+# ==========================================================
+
+file_type = uploaded_file.name.split(".")[-1].upper()
+
+c1, c2, c3, c4 = st.columns(4)
+
+c1.metric("📄 File Type", file_type)
+c2.metric("📝 Words", len(resume_text.split()))
+c3.metric("🔤 Characters", len(resume_text))
+c4.metric("💾 Size", f"{uploaded_file.size/1024:.1f} KB")
+
+# Store result
+
+results.append({
+    "Resume": uploaded_file.name,
+    "Prediction": prediction,
+    "Confidence (%)": confidence_percent
+})
+import pandas as pd
+
+if results:
+
+    st.markdown("---")
+
+    st.header("📊 Prediction Summary")
+
+    df = pd.DataFrame(results)
+
+    st.dataframe(
+        df,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    st.success(f"✅ Total Resumes Processed : {len(results)}")
     st.markdown(f"""
 
 <div style="
