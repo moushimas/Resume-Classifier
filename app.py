@@ -186,22 +186,18 @@ input{
     border:2px dashed #2563EB;
 
  st.markdown("""
-<div style="
-background:#2563EB;
-padding:30px;
-border-radius:20px;
-text-align:center;
-">
+<style>
 
-<h1 style="color:white;">
-🤖 AI Resume Classification System
-</h1>
+.stApp{
+    background:#F4F8FC;
+}
 
-<p style="color:#E0F2FE;font-size:20px;">
-Smart Resume Analysis Using Machine Learning & NLP
-</p>
+.metric-card{
+    padding:18px;
+    background:white;
+}
 
-</div>
+</style>
 """, unsafe_allow_html=True)
 
 
